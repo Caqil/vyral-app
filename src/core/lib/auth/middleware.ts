@@ -414,15 +414,15 @@ async function checkRateLimit(
  * Get client IP address
  */
 function getClientIP(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for')
-  const realIP = req.headers.get('x-real-ip')
-  const cfConnectingIP = req.headers.get('cf-connecting-ip')
-  
-  if (cfConnectingIP) return cfConnectingIP
-  if (realIP) return realIP
-  if (forwarded) return forwarded.split(',')[0].trim()
-  
-  return req.ip || '127.0.0.1'
+  const forwarded = req.headers.get('x-forwarded-for');
+  const realIP = req.headers.get('x-real-ip');
+  const cfConnectingIP = req.headers.get('cf-connecting-ip');
+
+  if (cfConnectingIP) return cfConnectingIP;
+  if (realIP) return realIP;
+  if (forwarded) return forwarded.split(',')[0].trim();
+
+  return '127.0.0.1';
 }
 
 /**

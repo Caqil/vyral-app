@@ -19,7 +19,8 @@ import {
   LogLevel,
   TaskStatus,
   BackupType,
-  BackupStatus
+  BackupStatus,
+  IssueSeverity
 } from '@/core/types/system'
 import { ValidationError, NotFoundError } from '@/core/types'
 import { logger } from '@/core/lib/utils/logger'
@@ -161,33 +162,34 @@ export class SystemService {
     }
   }
 
-  async getSystemHealth(): Promise<SystemHealth> {
-    try {
-      const services = Array.from(this.healthChecks.values())
-      const issues = services
-        .filter(check => check.status !== HealthStatus.HEALTHY)
-        .map(check => ({
-          service: check.service,
-          severity: check.status === HealthStatus.UNHEALTHY ? 'high' as const : 'medium' as const,
-          message: check.message || `${check.service} is ${check.status}`,
-          timestamp: check.timestamp,
-          resolved: false
-        }))
+ async getSystemHealth(): Promise<SystemHealth> {
+  try {
+    const services = Array.from(this.healthChecks.values())
+    const issues = services
+      .filter(check => check.status !== HealthStatus.HEALTHY)
+      .map(check => ({
+        service: check.service,
+        // Fix: Use proper IssueSeverity enum values instead of string literals
+        severity: check.status === HealthStatus.UNHEALTHY ? IssueSeverity.HIGH : IssueSeverity.MEDIUM,
+        message: check.message || `${check.service} is ${check.status}`,
+        timestamp: check.timestamp,
+        resolved: false
+      }))
 
-      const overall = this.determineOverallHealth(services)
+    const overall = this.determineOverallHealth(services)
 
-      return {
-        overall,
-        services,
-        uptime: process.uptime(),
-        lastCheck: new Date(),
-        issues
-      }
-    } catch (error) {
-      logger.error('Failed to get system health', { error: error})
-      throw error
+    return {
+      overall,
+      services,
+      uptime: process.uptime(),
+      lastCheck: new Date(),
+      issues
     }
+  } catch (error) {
+    logger.error('Failed to get system health', { error: error})
+    throw error
   }
+}
 
   async runHealthChecks(): Promise<void> {
     try {
@@ -283,58 +285,64 @@ export class SystemService {
     }
   }
 
-  async getLogs(query: LogQuery): Promise<SystemLog[]> {
-    try {
-      let filteredLogs = [...this.systemLogs]
+ async getLogs(query: LogQuery): Promise<SystemLog[]> {
+  try {
+    let filteredLogs = [...this.systemLogs]
 
-      if (query.level) {
-        filteredLogs = filteredLogs.filter(log => query.level!.includes(log.level))
-      }
-
-      if (query.service) {
-        filteredLogs = filteredLogs.filter(log => query.service!.includes(log.service))
-      }
-
-      if (query.userId) {
-        filteredLogs = filteredLogs.filter(log => log.userId === query.userId)
-      }
-
-      if (query.startDate) {
-        filteredLogs = filteredLogs.filter(log => log.timestamp >= query.startDate!)
-      }
-
-      if (query.endDate) {
-        filteredLogs = filteredLogs.filter(log => log.timestamp <= query.endDate!)
-      }
-
-      if (query.message) {
-        const searchTerm = query.message.toLowerCase()
-        filteredLogs = filteredLogs.filter(log => log.message.toLowerCase().includes(searchTerm))
-      }
-
-      const sortBy = query.sortBy || 'timestamp'
-      const sortOrder = query.sortOrder || 'desc'
-
-      filteredLogs.sort((a, b) => {
-        const aValue = a[sortBy as keyof SystemLog]
-        const bValue = b[sortBy as keyof SystemLog]
-        
-        if (sortOrder === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-        }
-      })
-
-      const offset = query.offset || 0
-      const limit = query.limit || 100
-
-      return filteredLogs.slice(offset, offset + limit)
-    } catch (error) {
-      logger.error('Failed to get logs', { error: error, query })
-      return []
+    if (query.level) {
+      filteredLogs = filteredLogs.filter(log => query.level!.includes(log.level))
     }
+
+    if (query.service) {
+      filteredLogs = filteredLogs.filter(log => query.service!.includes(log.service))
+    }
+
+    if (query.userId) {
+      filteredLogs = filteredLogs.filter(log => log.userId === query.userId)
+    }
+
+    if (query.startDate) {
+      filteredLogs = filteredLogs.filter(log => log.timestamp >= query.startDate!)
+    }
+
+    if (query.endDate) {
+      filteredLogs = filteredLogs.filter(log => log.timestamp <= query.endDate!)
+    }
+
+    if (query.message) {
+      const searchTerm = query.message.toLowerCase()
+      filteredLogs = filteredLogs.filter(log => log.message.toLowerCase().includes(searchTerm))
+    }
+
+    const sortBy = query.sortBy || 'timestamp'
+    const sortOrder = query.sortOrder || 'desc'
+
+    // Fix: Handle undefined values in sorting
+    filteredLogs.sort((a, b) => {
+      const aValue = a[sortBy as keyof SystemLog]
+      const bValue = b[sortBy as keyof SystemLog]
+      
+      // Handle undefined values
+      if (aValue === undefined && bValue === undefined) return 0
+      if (aValue === undefined) return sortOrder === 'asc' ? -1 : 1
+      if (bValue === undefined) return sortOrder === 'asc' ? 1 : -1
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+
+    const offset = query.offset || 0
+    const limit = query.limit || 100
+
+    return filteredLogs.slice(offset, offset + limit)
+  } catch (error) {
+    logger.error('Failed to get logs', { error: error, query })
+    return []
   }
+}
 
   async addLog(log: Omit<SystemLog, 'id' | 'timestamp'>): Promise<void> {
     try {

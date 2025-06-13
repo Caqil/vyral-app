@@ -80,7 +80,7 @@ export async function getSessionFromRequest(req: NextRequest): Promise<ExtendedS
         isActive: token.isActive as boolean,
         permissions: token.permissions as string[]
       },
-      expires: new Date(token.exp! * 1000).toISOString(),
+      expires: new Date((token.exp as number) * 1000).toISOString(),
       sessionToken: token.sessionToken as string
     }
   } catch (error: any) {
@@ -114,7 +114,7 @@ export async function getSessionUser(session: ExtendedSession | null): Promise<S
       avatar: user.avatar || '',
       role: user.role,
       provider: user.provider,
-      emailVerified: user.emailVerified,
+      emailVerified: user.emailVerified || null,
       isActive: user.isActive,
       permissions: user.getDefaultPermissions().map(p => 
         `${p.resource}:${p.actions.join(',')}:${p.scope}`
@@ -197,7 +197,7 @@ export async function validateAndRefreshSession(
         avatar: user.avatar || '',
         role: user.role,
         provider: user.provider,
-        emailVerified: user.emailVerified,
+        emailVerified: user.emailVerified || null,
         isActive: user.isActive,
         permissions: user.getDefaultPermissions().map(p => 
           `${p.resource}:${p.actions.join(',')}:${p.scope}`
