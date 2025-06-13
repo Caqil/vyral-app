@@ -161,7 +161,7 @@ export class PluginService {
       await this.loadInstalledPlugins()
       return Array.from(this.installedPlugins.values())
     } catch (error) {
-      logger.error('Failed to get all plugins', { error: error.message })
+      logger.error('Failed to get all plugins', { error: error })
       throw new PluginError('Failed to retrieve plugins', 'system')
     }
   }
@@ -174,7 +174,7 @@ export class PluginService {
       }
       return plugin
     } catch (error) {
-      logger.error('Failed to get plugin', { error: error.message, pluginId })
+      logger.error('Failed to get plugin', { error: error, pluginId })
       return null
     }
   }
@@ -222,7 +222,7 @@ export class PluginService {
         plugin
       }
     } catch (error) {
-      logger.error('Plugin installation failed', { error: error.message, source: request.source })
+      logger.error('Plugin installation failed', { error: error, source: request.source })
 
       return {
         success: false,
@@ -265,7 +265,7 @@ export class PluginService {
       logger.info('Plugin uninstalled successfully', { pluginId, userId })
       return true
     } catch (error) {
-      logger.error('Plugin uninstallation failed', { error: error.message, pluginId })
+      logger.error('Plugin uninstallation failed', { error: error, pluginId })
       throw error
     }
   }
@@ -301,7 +301,7 @@ export class PluginService {
       logger.info('Plugin activated successfully', { pluginId, userId })
       return true
     } catch (error) {
-      logger.error('Plugin activation failed', { error: error.message, pluginId })
+      logger.error('Plugin activation failed', { error: error, pluginId })
       throw error
     }
   }
@@ -335,7 +335,7 @@ export class PluginService {
       logger.info('Plugin deactivated successfully', { pluginId, userId })
       return true
     } catch (error) {
-      logger.error('Plugin deactivation failed', { error: error.message, pluginId })
+      logger.error('Plugin deactivation failed', { error: error, pluginId })
       throw error
     }
   }
@@ -395,7 +395,7 @@ export class PluginService {
       
       return true
     } catch (error) {
-      logger.error('Plugin update failed', { error: error.message, pluginId: pluginUpdateRequest.pluginId })
+      logger.error('Plugin update failed', { error: error, pluginId: pluginUpdateRequest.pluginId })
       throw error
     }
   }
@@ -405,7 +405,7 @@ export class PluginService {
       const configKey = userId ? `${pluginId}:${userId}` : pluginId
       return this.pluginConfigs.get(configKey) || null
     } catch (error) {
-      logger.error('Failed to get plugin config', { error: error.message, pluginId })
+      logger.error('Failed to get plugin config', { error: error, pluginId })
       return null
     }
   }
@@ -436,7 +436,7 @@ export class PluginService {
       logger.info('Plugin configuration updated', { pluginId, userId })
       return true
     } catch (error) {
-      logger.error('Failed to update plugin config', { error: error.message, pluginId })
+      logger.error('Failed to update plugin config', { error: error, pluginId })
       throw error
     }
   }
@@ -458,7 +458,7 @@ export class PluginService {
 
       return data?.value || null
     } catch (error) {
-      logger.error('Failed to get plugin data', { error: error.message, pluginId, key })
+      logger.error('Failed to get plugin data', { error: error, pluginId, key })
       return null
     }
   }
@@ -489,7 +489,7 @@ export class PluginService {
       logger.debug('Plugin data saved', { pluginId, key, userId })
       return true
     } catch (error) {
-      logger.error('Failed to set plugin data', { error: error.message, pluginId, key })
+      logger.error('Failed to set plugin data', { error: error, pluginId, key })
       return false
     }
   }
@@ -507,7 +507,7 @@ export class PluginService {
       logger.debug('Plugin data deleted', { pluginId, key, userId })
       return true
     } catch (error) {
-      logger.error('Failed to delete plugin data', { error: error.message, pluginId, key })
+      logger.error('Failed to delete plugin data', { error: error, pluginId, key })
       return false
     }
   }
@@ -535,7 +535,7 @@ export class PluginService {
       filteredPlugins.sort((a, b) => b.rating - a.rating)
       return filteredPlugins.slice(0, limit)
     } catch (error) {
-      logger.error('Plugin search failed', { error: error.message, query, category })
+      logger.error('Plugin search failed', { error: error, query, category })
       return []
     }
   }
@@ -550,7 +550,7 @@ export class PluginService {
         usage: { requests: 0, errors: 0, lastUsed: null }
       }
     } catch (error) {
-      logger.error('Failed to get plugin stats', { error: error.message, pluginId })
+      logger.error('Failed to get plugin stats', { error: error, pluginId })
       return null
     }
   }

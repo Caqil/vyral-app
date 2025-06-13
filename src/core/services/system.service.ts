@@ -156,7 +156,7 @@ export class SystemService {
         maintenance: await this.getMaintenanceInfo()
       }
     } catch (error) {
-      logger.error('Failed to get system info', { error: error.message })
+      logger.error('Failed to get system info', { error: error})
       throw error
     }
   }
@@ -184,7 +184,7 @@ export class SystemService {
         issues
       }
     } catch (error) {
-      logger.error('Failed to get system health', { error: error.message })
+      logger.error('Failed to get system health', { error: error})
       throw error
     }
   }
@@ -201,7 +201,7 @@ export class SystemService {
 
       logger.debug('Health checks completed successfully')
     } catch (error) {
-      logger.error('Failed to run health checks', { error: error.message })
+      logger.error('Failed to run health checks', { error: error})
     }
   }
 
@@ -209,7 +209,7 @@ export class SystemService {
     try {
       return this.systemConfigs.get(key) || null
     } catch (error) {
-      logger.error('Failed to get config', { error: error.message, key })
+      logger.error('Failed to get config', { error: error, key })
       return null
     }
   }
@@ -242,7 +242,7 @@ export class SystemService {
       logger.info('System config updated', { key, userId })
       return true
     } catch (error) {
-      logger.error('Failed to set config', { error: error.message, key })
+      logger.error('Failed to set config', { error: error, key })
       return false
     }
   }
@@ -263,7 +263,7 @@ export class SystemService {
       logger.info('System config deleted', { key, userId })
       return true
     } catch (error) {
-      logger.error('Failed to delete config', { error: error.message, key })
+      logger.error('Failed to delete config', { error: error, key })
       return false
     }
   }
@@ -278,7 +278,7 @@ export class SystemService {
       
       return configs
     } catch (error) {
-      logger.error('Failed to get all configs', { error: error.message, category })
+      logger.error('Failed to get all configs', { error: error, category })
       return []
     }
   }
@@ -331,7 +331,7 @@ export class SystemService {
 
       return filteredLogs.slice(offset, offset + limit)
     } catch (error) {
-      logger.error('Failed to get logs', { error: error.message, query })
+      logger.error('Failed to get logs', { error: error, query })
       return []
     }
   }
@@ -351,7 +351,7 @@ export class SystemService {
         this.systemLogs = this.systemLogs.slice(-5000)
       }
     } catch (error) {
-      logger.error('Failed to add log', { error: error.message })
+      logger.error('Failed to add log', { error: error})
     }
   }
 
@@ -370,7 +370,7 @@ export class SystemService {
       logger.info('Logs cleared', { deletedCount, before, level })
       return deletedCount
     } catch (error) {
-      logger.error('Failed to clear logs', { error: error.message })
+      logger.error('Failed to clear logs', { error: error})
       return 0
     }
   }
@@ -389,7 +389,7 @@ export class SystemService {
         security: await this.getSecurityAnalytics(start, end)
       }
     } catch (error) {
-      logger.error('Failed to get system analytics', { error: error.message })
+      logger.error('Failed to get system analytics', { error: error})
       throw error
     }
   }
@@ -412,7 +412,7 @@ export class SystemService {
       logger.info('Task created', { taskId: task.id, name, type, userId })
       return task
     } catch (error) {
-      logger.error('Failed to create task', { error: error.message, name, type })
+      logger.error('Failed to create task', { error: error, name, type })
       throw error
     }
   }
@@ -421,7 +421,7 @@ export class SystemService {
     try {
       return this.systemTasks.get(taskId) || null
     } catch (error) {
-      logger.error('Failed to get task', { error: error.message, taskId })
+      logger.error('Failed to get task', { error: error, taskId })
       return null
     }
   }
@@ -448,7 +448,7 @@ export class SystemService {
       this.systemTasks.set(taskId, task)
       return true
     } catch (error) {
-      logger.error('Failed to update task progress', { error: error.message, taskId })
+      logger.error('Failed to update task progress', { error: error, taskId })
       return false
     }
   }
@@ -472,7 +472,7 @@ export class SystemService {
       logger.info('Task cancelled', { taskId })
       return true
     } catch (error) {
-      logger.error('Failed to cancel task', { error: error.message, taskId })
+      logger.error('Failed to cancel task', { error: error, taskId })
       return false
     }
   }
@@ -493,7 +493,7 @@ export class SystemService {
       logger.info('Job scheduled', { jobId: scheduledJob.id, name: job.name })
       return scheduledJob.id
     } catch (error) {
-      logger.error('Failed to schedule job', { error: error.message, name: job.name })
+      logger.error('Failed to schedule job', { error: error, name: job.name })
       throw error
     }
   }
@@ -518,7 +518,7 @@ export class SystemService {
       
       return systemNotification.id
     } catch (error) {
-      logger.error('Failed to create notification', { error: error.message })
+      logger.error('Failed to create notification', { error: error})
       throw error
     }
   }
@@ -542,7 +542,7 @@ export class SystemService {
       logger.info('Backup started', { backupId: backup.id, type })
       return backup
     } catch (error) {
-      logger.error('Failed to start backup', { error: error.message, type })
+      logger.error('Failed to start backup', { error: error, type })
       throw error
     }
   }
@@ -559,7 +559,7 @@ export class SystemService {
       logger.info('Maintenance mode enabled', { reason, allowedRoles })
       return true
     } catch (error) {
-      logger.error('Failed to enable maintenance mode', { error: error.message })
+      logger.error('Failed to enable maintenance mode', { error: error})
       return false
     }
   }
@@ -574,7 +574,7 @@ export class SystemService {
       logger.info('Maintenance mode disabled')
       return true
     } catch (error) {
-      logger.error('Failed to disable maintenance mode', { error: error.message })
+      logger.error('Failed to disable maintenance mode', { error: error})
       return false
     }
   }
@@ -770,7 +770,7 @@ export class SystemService {
       
       this.systemBackups.set(backup.id, backup)
       
-      logger.error('Backup failed', { backupId: backup.id, error: error.message })
+      logger.error('Backup failed', { backupId: backup.id, error: error })
     }
   }
 

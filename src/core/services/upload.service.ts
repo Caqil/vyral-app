@@ -164,7 +164,7 @@ export class UploadService {
         type: result.original.mimetype
       }
     } catch (error) {
-      logger.error('File upload failed', { error: error.message, filename: file.filename, userId })
+      logger.error('File upload failed', { error: error, filename: file.filename, userId })
       
       await this.executeOnUploadError(error, file, userId)
       
@@ -229,7 +229,7 @@ export class UploadService {
       logger.info('File deleted successfully', { filename, userId })
       return true
     } catch (error) {
-      logger.error('File deletion failed', { error: error.message, filename, userId })
+      logger.error('File deletion failed', { error: error, filename, userId })
       return false
     }
   }
@@ -304,7 +304,7 @@ export class UploadService {
       logger.info('Orphaned files cleaned up', { count: cleanedCount })
       return cleanedCount
     } catch (error) {
-      logger.error('Cleanup failed', { error: error.message })
+      logger.error('Cleanup failed', { error: error})
       return 0
     }
   }
@@ -406,7 +406,7 @@ export class UploadService {
         width = metadata.width
         height = metadata.height
       } catch (error) {
-        logger.warn('Failed to get image dimensions', { filename, error: error.message })
+        logger.warn('Failed to get image dimensions', { filename, error: error })
       }
     }
 
@@ -476,7 +476,7 @@ export class UploadService {
 
       return await this.storeFile(optimizedFile, optimizedFilename, folder)
     } catch (error) {
-      logger.warn('Image optimization failed', { filename, error: error.message })
+      logger.warn('Image optimization failed', { filename, error: error })
       throw error
     }
   }
@@ -503,7 +503,7 @@ export class UploadService {
         const thumbnail = await this.storeFile(thumbnailFile, thumbnailFilename, folder)
         thumbnails.push(thumbnail)
       } catch (error) {
-        logger.warn('Thumbnail generation failed', { filename, size: size.name, error: error.message })
+        logger.warn('Thumbnail generation failed', { filename, size: size.name, error: error })
       }
     }
 
@@ -580,7 +580,7 @@ export class UploadService {
         }
       }
     } catch (error) {
-      logger.warn('Failed to delete file from local storage', { path: file.path, error: error.message })
+      logger.warn('Failed to delete file from local storage', { path: file.path, error: error })
     }
   }
 
@@ -589,7 +589,7 @@ export class UploadService {
       const publicId = file.filename.replace(/\.[^/.]+$/, '')
       await cloudinary.uploader.destroy(publicId)
     } catch (error) {
-      logger.warn('Failed to delete file from Cloudinary', { filename: file.filename, error: error.message })
+      logger.warn('Failed to delete file from Cloudinary', { filename: file.filename, error: error })
     }
   }
 

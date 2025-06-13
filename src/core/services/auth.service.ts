@@ -82,7 +82,7 @@ export class AuthService {
 
         logger.info('Default admin user created', { email: adminEmail })
       } catch (error) {
-        logger.error('Failed to create default admin', { error: error.message })
+        logger.error('Failed to create default admin', { error: error })
       }
     }
   }
@@ -133,7 +133,7 @@ export class AuthService {
         token
       }
     } catch (error) {
-      logger.error('Sign in failed', { error: error.message, email: credentials.email })
+      logger.error('Sign in failed', { error: error, email: credentials.email })
       
       if (error instanceof AuthenticationError) {
         return {
@@ -204,7 +204,7 @@ export class AuthService {
         message: 'Account created successfully'
       }
     } catch (error) {
-      logger.error('Sign up failed', { error: error.message, email: data.email })
+      logger.error('Sign up failed', { error: error, email: data.email })
       
       if (error instanceof ConflictError || error instanceof ValidationError) {
         return {
@@ -263,7 +263,7 @@ export class AuthService {
         token
       }
     } catch (error) {
-      logger.error('OAuth sign in failed', { error: error.message, provider: profile.provider })
+      logger.error('OAuth sign in failed', { error: error, provider: profile.provider })
       
       return {
         success: false,
@@ -291,7 +291,7 @@ export class AuthService {
 
       logger.info('User signed out successfully', { userId, sessionId })
     } catch (error) {
-      logger.error('Sign out failed', { error: error.message, userId })
+      logger.error('Sign out failed', { error: error, userId })
       throw error
     }
   }
@@ -308,7 +308,7 @@ export class AuthService {
 
       return session
     } catch (error) {
-      logger.error('Session refresh failed', { error: error.message, sessionId })
+      logger.error('Session refresh failed', { error: error, sessionId })
       return null
     }
   }
@@ -326,7 +326,7 @@ export class AuthService {
 
       return decoded
     } catch (error) {
-      logger.warn('Token verification failed', { error: error.message })
+      logger.warn('Token verification failed', { error: error })
       return null
     }
   }
@@ -354,7 +354,7 @@ export class AuthService {
       logger.info('Password reset requested', { email })
       return true
     } catch (error) {
-      logger.error('Password reset request failed', { error: error.message, email })
+      logger.error('Password reset request failed', { error: error, email })
       return false
     }
   }
@@ -386,7 +386,7 @@ export class AuthService {
       logger.info('Password reset successful', { userId: user.id })
       return true
     } catch (error) {
-      logger.error('Password reset failed', { error: error.message })
+      logger.error('Password reset failed', { error: error })
       return false
     }
   }
@@ -408,7 +408,7 @@ export class AuthService {
 
       logger.info('Email verification sent', { userId: user.id, email: user.email })
     } catch (error) {
-      logger.error('Email verification failed', { error: error.message, userId: user.id })
+      logger.error('Email verification failed', { error: error, userId: user.id })
       throw error
     }
   }
@@ -437,7 +437,7 @@ export class AuthService {
       logger.info('Email verified successfully', { userId: user.id })
       return true
     } catch (error) {
-      logger.error('Email verification failed', { error: error.message })
+      logger.error('Email verification failed', { error: error })
       return false
     }
   }
@@ -452,7 +452,7 @@ export class AuthService {
       const rolePermissions = await this.getRolePermissions(user.role)
       return rolePermissions.includes(permission)
     } catch (error) {
-      logger.error('Permission check failed', { error: error.message, userId, permission })
+      logger.error('Permission check failed', { error: error, userId, permission })
       return false
     }
   }
@@ -467,7 +467,7 @@ export class AuthService {
       const pluginPermissions = await this.getPluginPermissions(userId, pluginId)
       return pluginPermissions.includes('plugin.access')
     } catch (error) {
-      logger.error('Plugin access check failed', { error: error.message, userId, pluginId })
+      logger.error('Plugin access check failed', { error: error, userId, pluginId })
       return false
     }
   }
@@ -501,7 +501,7 @@ export class AuthService {
       logger.info('User updated', { userId, updateData })
       return this.sanitizeUser(updatedUser)
     } catch (error) {
-      logger.error('User update failed', { error: error.message, userId })
+      logger.error('User update failed', { error: error, userId })
       return null
     }
   }

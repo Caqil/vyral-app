@@ -2,7 +2,6 @@ import mongoose, { Schema, Model, Types } from 'mongoose'
 
 // Base interface without Document
 export interface ISession {
-  _id?: Types.ObjectId
   userId: Types.ObjectId
   token: string
   refreshToken?: string
@@ -65,13 +64,11 @@ export interface ISession {
   createdAt: Date
   updatedAt: Date
 }
-
-// Document interface for instance methods
-export interface SessionDocument extends ISession, mongoose.Document {
+export interface SessionDocument extends ISession, mongoose.Document<Types.ObjectId> {
   isValid(): boolean
   isExpired(): boolean
   refresh(): Promise<void>
-  invalidate(): Promise<void>
+  invalidateSession(): Promise<void>  // Renamed to avoid conflict with mongoose.Document.invalidate()
   updateActivity(ipAddress?: string, userAgent?: string): Promise<void>
   generateToken(): string
   addSecurityEvent(event: string, data?: any): Promise<void>
@@ -328,14 +325,15 @@ SessionSchema.methods.shouldRenew = function(): boolean {
 SessionSchema.methods.calculateRiskScore = async function(): Promise<number> {
   let score = 0
   
-  // Check for suspicious patterns
-  if (this.securityEvents.some(e => e.type === 'suspicious_activity')) score += 30
-  if (this.securityEvents.some(e => e.type === 'location_change')) score += 20
-  if (this.securityEvents.some(e => e.type === 'device_change')) score += 15
+  // Check for suspicious patterns - fix parameter typing
+  if (this.securityEvents.some((e: any) => e.type === 'suspicious_activity')) score += 30
+  if (this.securityEvents.some((e: any) => e.type === 'location_change')) score += 20
+  if (this.securityEvents.some((e: any) => e.type === 'device_change')) score += 15
   if (this.renewalCount > 5) score += 10
   
-  // Check concurrent sessions
-  const concurrentSessions = await this.constructor.countDocuments({
+  // Check concurrent sessions - fix constructor typing
+  const SessionModel = this.constructor as SessionModel
+  const concurrentSessions = await SessionModel.countDocuments({
     userId: this.userId,
     isActive: true,
     _id: { $ne: this._id }
@@ -344,7 +342,6 @@ SessionSchema.methods.calculateRiskScore = async function(): Promise<number> {
   
   return Math.min(score, 100)
 }
-
 SessionSchema.methods.parseUserAgent = function(userAgent: string): any {
   const ua = userAgent.toLowerCase()
   let deviceType = 'unknown'

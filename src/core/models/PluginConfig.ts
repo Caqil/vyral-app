@@ -2,7 +2,6 @@ import mongoose, { Schema, Model, Types } from 'mongoose'
 
 // Base interface without Document
 export interface IPluginConfig {
-  _id?: Types.ObjectId
   pluginId: string
   userId?: Types.ObjectId
   isGlobal: boolean
@@ -71,9 +70,21 @@ export interface IPluginConfig {
   createdAt: Date
   updatedAt: Date
 }
-
+interface ValidationSchemaField {
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object'
+  required: boolean
+  default?: any
+  validation?: {
+    min?: number
+    max?: number
+    pattern?: string
+    options?: any[]
+    custom?: string
+  }
+  description?: string
+}
 // Document interface for instance methods
-export interface PluginConfigDocument extends IPluginConfig, mongoose.Document {
+export interface PluginConfigDocument extends IPluginConfig, mongoose.Document<Types.ObjectId> {
   validateSettings(): Promise<boolean>
   getSetting(key: string, defaultValue?: any): any
   setSetting(key: string, value: any): Promise<void>
@@ -271,7 +282,8 @@ PluginConfigSchema.methods.validateSettings = async function(): Promise<boolean>
     return true
   }
   
-  for (const [key, schema] of Object.entries(this.validationSchema)) {
+  // Fix: Type the schema properly
+  for (const [key, schema] of Object.entries(this.validationSchema) as [string, ValidationSchemaField][]) {
     const value = this.settings[key]
     
     // Check required fields
@@ -309,7 +321,7 @@ PluginConfigSchema.methods.validateSettings = async function(): Promise<boolean>
   this.lastValidated = new Date()
   await this.save()
   
-  return this.validationErrors.filter(e => e.severity === 'error').length === 0
+  return this.validationErrors.filter((e: { severity: string }) => e.severity === 'error').length === 0
 }
 
 PluginConfigSchema.methods.validateType = function(value: any, type: string): boolean {
@@ -428,12 +440,12 @@ PluginConfigSchema.methods.setSetting = async function(key: string, value: any):
   this.settings[key] = value
   await this.save()
 }
-
 PluginConfigSchema.methods.resetToDefaults = async function(): Promise<void> {
   const defaultSettings: Record<string, any> = {}
   
   if (this.validationSchema) {
-    for (const [key, schema] of Object.entries(this.validationSchema)) {
+    // Fix: Type the schema properly
+    for (const [key, schema] of Object.entries(this.validationSchema) as [string, ValidationSchemaField][]) {
       if (schema.default !== undefined) {
         defaultSettings[key] = schema.default
       }
@@ -546,15 +558,66 @@ PluginConfigSchema.methods.addToHistory = async function(reason?: string): Promi
   }
 }
 
+PluginConfigSchema.methods.runCustomValidation = function(
+  key: string, 
+  value: any, 
+  validation: any
+): Array<{ field: string; message: string; code: string; severity: 'error' | 'warning' | 'info' }> {
+  const errors = []
+  
+  if (validation.min !== undefined && typeof value === 'number' && value < validation.min) {
+    errors.push({
+      field: key,
+      message: `${key} must be at least ${validation.min}`,
+      code: 'MIN_VALUE',
+      severity: 'error' as const
+    })
+  }
+  
+  if (validation.max !== undefined && typeof value === 'number' && value > validation.max) {
+    errors.push({
+      field: key,
+      message: `${key} must be at most ${validation.max}`,
+      code: 'MAX_VALUE',
+      severity: 'error' as const
+    })
+  }
+  
+  if (validation.pattern && typeof value === 'string') {
+    const regex = new RegExp(validation.pattern)
+    if (!regex.test(value)) {
+      errors.push({
+        field: key,
+        message: `${key} does not match the required pattern`,
+        code: 'PATTERN_MISMATCH',
+        severity: 'error' as const
+      })
+    }
+  }
+  
+  if (validation.options && !validation.options.includes(value)) {
+    errors.push({
+      field: key,
+      message: `${key} must be one of: ${validation.options.join(', ')}`,
+      code: 'INVALID_OPTION',
+      severity: 'error' as const
+    })
+  }
+  
+  return errors
+}
+
+// Fix: Constructor and static method typing issues
 PluginConfigSchema.methods.clone = async function(newUserId?: string): Promise<PluginConfigDocument> {
-  const cloned = new this.constructor({
+  const PluginConfigModel = this.constructor as PluginConfigModel
+  
+  const cloned = new PluginConfigModel({
     ...this.toObject(),
     _id: undefined,
-    userId: newUserId ? new Types.ObjectId(newUserId) : undefined,
-    isGlobal: !newUserId,
+    userId: newUserId ? new Types.ObjectId(newUserId) : this.userId,
     history: [],
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: undefined,
+    updatedAt: undefined
   })
   
   return await cloned.save()
@@ -621,25 +684,57 @@ PluginConfigSchema.statics.findByPluginAndUser = function(pluginId: string, user
   return this.findOne(query)
 }
 
+PluginConfigSchema.statics.findByPluginAndUser = function(pluginId: string, userId?: string) {
+  const query: any = { pluginId }
+  if (userId) {
+    query.userId = new Types.ObjectId(userId)
+  } else {
+    query.isGlobal = true
+  }
+  return this.findOne(query)
+}
+
 PluginConfigSchema.statics.createDefault = async function(pluginId: string, userId?: string) {
-  const config = new this({
+  const existingConfig = await (this as PluginConfigModel).findByPluginAndUser(pluginId, userId)
+  if (existingConfig) {
+    return existingConfig
+  }
+  
+  return await this.create({
     pluginId,
     userId: userId ? new Types.ObjectId(userId) : undefined,
     isGlobal: !userId,
     settings: {},
     isActive: true,
-    version: '1.0.0'
+    version: '1.0.0',
+    environment: 'production',
+    validationSchema: {},
+    metadata: {
+      source: 'user',
+      encrypted: [],
+      sensitive: [],
+      readonly: [],
+      hidden: [],
+      dependencies: {},
+      overrides: {}
+    },
+    history: [],
+    validationErrors: [],
+    performance: {
+      loadTime: 0,
+      memoryUsage: 0,
+      cacheHits: 0,
+      cacheMisses: 0,
+      lastOptimized: new Date()
+    }
   })
-  
-  return await config.save()
 }
-
 PluginConfigSchema.statics.bulkUpdate = async function(updates: Array<{ pluginId: string; userId?: string; settings: any }>) {
   const results = []
   
   for (const update of updates) {
     try {
-      const config = await this.findByPluginAndUser(update.pluginId, update.userId)
+      const config = await (this as PluginConfigModel).findByPluginAndUser(update.pluginId, update.userId)
       
       if (config) {
         await config.addToHistory('Bulk update')
@@ -656,7 +751,6 @@ PluginConfigSchema.statics.bulkUpdate = async function(updates: Array<{ pluginId
   
   return results
 }
-
 PluginConfigSchema.statics.validateAllConfigs = async function() {
   const configs = await this.find({ isActive: true })
   const results = []

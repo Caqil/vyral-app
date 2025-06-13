@@ -3,8 +3,7 @@ import { PluginStatus, PluginCategory } from '@/core/types/plugin'
 
 // Base interface without Document
 export interface IPlugin {
-  _id?: Types.ObjectId
-  id: string
+  pluginId: string
   name: string
   displayName: string
   description: string
@@ -229,9 +228,7 @@ export interface IPlugin {
   }
   createdAt: Date
 }
-
-// Document interface for instance methods
-export interface PluginDocument extends IPlugin, mongoose.Document {
+export interface PluginDocument extends IPlugin, mongoose.Document<Types.ObjectId> {
   activate(userId?: string): Promise<boolean>
   deactivate(userId?: string): Promise<boolean>
   updateVersion(newVersion: string): Promise<void>
@@ -250,6 +247,7 @@ export interface PluginDocument extends IPlugin, mongoose.Document {
   restore(backupId: string): Promise<void>
   clone(): Promise<PluginDocument>
 }
+
 
 // Model interface for static methods
 export interface PluginModel extends Model<PluginDocument> {
@@ -621,8 +619,8 @@ PluginSchema.methods.addSecurityScan = async function(results: any): Promise<voi
   // Update risk level based on latest scan
   const latestScan = this.security.scanResults[this.security.scanResults.length - 1]
   if (latestScan.issues?.length > 0) {
-    const criticalIssues = latestScan.issues.filter(i => i.severity === 'critical')
-    const highIssues = latestScan.issues.filter(i => i.severity === 'high')
+    const criticalIssues = latestScan.issues.filter((i: { severity: string }) => i.severity === 'critical')
+    const highIssues = latestScan.issues.filter((i: { severity: string }) => i.severity === 'high')
     
     if (criticalIssues.length > 0) {
       this.security.riskLevel = 'critical'
@@ -661,7 +659,7 @@ PluginSchema.methods.calculateRating = async function(): Promise<number> {
     return 0
   }
   
-  const totalRating = this.analytics.reviews.reduce((sum, review) => sum + review.rating, 0)
+  const totalRating = this.analytics.reviews.reduce((sum: any, review: { rating: any }) => sum + review.rating, 0)
   return Math.round((totalRating / this.analytics.reviews.length) * 10) / 10
 }
 
@@ -696,7 +694,7 @@ PluginSchema.methods.hasPermission = function(permission: string): boolean {
 }
 
 PluginSchema.methods.getDependencies = function(): string[] {
-  return this.manifest.dependencies?.map(dep => dep.name) || []
+  return this.manifest.dependencies?.map((dep: { name: any }) => dep.name) || []
 }
 
 PluginSchema.methods.validateManifest = function(): boolean {
@@ -719,12 +717,13 @@ PluginSchema.methods.restore = async function(backupId: string): Promise<void> {
   // Implementation would restore from backup
   console.log(`Restoring plugin ${this.id} from backup ${backupId}`)
 }
-
 PluginSchema.methods.clone = async function(): Promise<PluginDocument> {
-  const cloned = new this.constructor({
+  const PluginModel = this.constructor as PluginModel
+  
+  const cloned = new PluginModel({
     ...this.toObject(),
     _id: undefined,
-    id: `${this.id}_copy_${Date.now()}`,
+    pluginId: `${this.pluginId}_copy_${Date.now()}`,
     name: `${this.name}_copy`,
     displayName: `${this.displayName} (Copy)`,
     downloadCount: 0,
@@ -735,7 +734,9 @@ PluginSchema.methods.clone = async function(): Promise<PluginDocument> {
       installations: 0,
       activations: 0,
       reviews: []
-    }
+    },
+    createdAt: undefined,
+    updatedAt: undefined
   })
   
   return await cloned.save()
@@ -834,14 +835,14 @@ PluginSchema.statics.validateAll = async function() {
   
   for (const plugin of plugins) {
     const isValid = plugin.validateManifest()
-    const hasErrors = plugin.errorHistory.some(e => !e.resolved)
+    const hasErrors = plugin.errorHistory.some((e: { resolved: any }) => !e.resolved)
     
     results.push({
       id: plugin.id,
       name: plugin.name,
       isValid,
       hasErrors,
-      errorCount: plugin.errorHistory.filter(e => !e.resolved).length,
+      errorCount: plugin.errorHistory.filter((e: { resolved: any }) => !e.resolved).length,
       lastError: plugin.errorHistory.length > 0 ? plugin.errorHistory[plugin.errorHistory.length - 1] : null
     })
   }
