@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/core/*": ["./src/core/*"],
+      "@/components/*": ["./src/core/components/*"],
+      "@/lib/*": ["./src/core/lib/*"],
+      "@/hooks/*": ["./src/core/hooks/*"],
+      "@/types/*": ["./src/core/types/*"],
+      "@/models/*": ["./src/core/models/*"],
+      "@/services/*": ["./src/core/services/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/plugins/*": ["./plugins/*"],
+      "@/ui/*": ["./src/core/components/ui/*"]
+    },
+    "target": "ES2017",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleDetection": "force"
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/**/*",
+    "plugins/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "plugins/uploads/**/*",
+    "plugins/cache/**/*"
+  ]
+}
