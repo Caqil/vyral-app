@@ -632,7 +632,7 @@ export class SystemService {
         service: 'database',
         status: HealthStatus.UNHEALTHY,
         responseTime: 0,
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error), 
         timestamp: new Date()
       })
     }
@@ -658,7 +658,7 @@ export class SystemService {
         service: 'disk',
         status: HealthStatus.UNKNOWN,
         responseTime: 0,
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error), 
         timestamp: new Date()
       })
     }
@@ -690,7 +690,7 @@ export class SystemService {
         service: 'memory',
         status: HealthStatus.UNKNOWN,
         responseTime: 0,
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error), 
         timestamp: new Date()
       })
     }
@@ -716,7 +716,7 @@ export class SystemService {
         service: 'plugins',
         status: HealthStatus.UNHEALTHY,
         responseTime: 0,
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error), 
         timestamp: new Date()
       })
     }
@@ -765,7 +765,7 @@ export class SystemService {
       logger.info('Backup completed', { backupId: backup.id })
     } catch (error) {
       backup.status = BackupStatus.FAILED
-      backup.error = error.message
+      backup.error = error instanceof Error ? error.message : String(error), 
       backup.completedAt = new Date()
       
       this.systemBackups.set(backup.id, backup)

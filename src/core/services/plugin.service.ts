@@ -226,7 +226,7 @@ export class PluginService {
 
       return {
         success: false,
-        errors: [error.message]
+        errors: [error instanceof Error ? error.message : String(error), ]
       }
     }
   }
