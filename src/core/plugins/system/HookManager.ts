@@ -215,128 +215,131 @@ export class PluginHookManager extends EventEmitter {
    * Execute hooks for a given hook name
    */
   public async executeHooks(
-    hookName: string,
-    context: PluginHookContext
-  ): Promise<PluginHookResult[]> {
-    const executionId = this.generateExecutionId()
-    const startTime = Date.now()
+  hookName: string,
+  context: PluginHookContext
+): Promise<PluginHookResult[]> {
+  const executionId = this.generateExecutionId()
+  const startTime = Date.now()
 
-    try {
-      // Check concurrent execution limit
-      if (this.activeExecutions.size >= this.config.maxConcurrentExecutions) {
-        throw new Error('Maximum concurrent executions reached')
+  try {
+    // Check concurrent execution limit
+    if (this.activeExecutions.size >= this.config.maxConcurrentExecutions) {
+      throw new Error('Maximum concurrent executions reached')
+    }
+
+    const hooks = this.hooks.get(hookName) || []
+    const enabledHooks = hooks.filter(h => h.enabled)
+
+    if (enabledHooks.length === 0) {
+      if (this.config.enableDebug) {
+        logger.debug('No enabled hooks found', { hookName })
       }
-
-      const hooks = this.hooks.get(hookName) || []
-      const enabledHooks = hooks.filter(h => h.enabled)
-
-      if (enabledHooks.length === 0) {
-        if (this.config.enableDebug) {
-          logger.debug('No enabled hooks found', { hookName })
-        }
-        return []
-      }
-
-      // Create execution context
-      const execContext: HookExecutionContext = {
-        ...context,
-        executionId,
-        startTime,
-        depth: 0,
-        timeout: this.config.maxExecutionTime
-      }
-
-      // Track active execution
-      this.activeExecutions.set(executionId, execContext)
-
-      const results: PluginHookResult[] = []
-      let stopPropagation = false
-
-      logger.debug('Executing hooks', {
-        hookName,
-        hookCount: enabledHooks.length,
-        executionId
-      })
-
-      // Execute hooks in priority order
-      for (const hook of enabledHooks) {
-        if (stopPropagation) {
-          break
-        }
-
-        try {
-          // Check circuit breaker
-          if (this.isCircuitBreakerOpen(hook.id)) {
-            logger.warn('Circuit breaker open, skipping hook', {
-              hookId: hook.id,
-              hookName: hook.name,
-              pluginId: hook.pluginId
-            })
-            continue
-          }
-
-          const result = await this.executeHook(hook, execContext)
-          
-          if (result.success && result.data) {
-            results.push(result.data)
-            
-            if (result.data.stopPropagation) {
-              stopPropagation = true
-            }
-          }
-
-          // Update metrics
-          if (this.config.enableMetrics) {
-            this.updateMetrics(hook.name, result)
-          }
-
-        } catch (error) {
-          logger.error('Hook execution failed', {
-            hookId: hook.id,
-            hookName: hook.name,
-            pluginId: hook.pluginId,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          })
-
-          // Update circuit breaker
-          this.updateCircuitBreaker(hook.id, false)
-        }
-      }
-
-      // Remove from active executions
-      this.activeExecutions.delete(executionId)
-
-      const totalTime = Date.now() - startTime
-
-      logger.debug('Hook execution completed', {
-        hookName,
-        executionId,
-        resultsCount: results.length,
-        totalTime,
-        stopPropagation
-      })
-
-      this.emit('hooks:executed', {
-        hookName,
-        executionId,
-        results,
-        totalTime
-      })
-
-      return results
-    } catch (error) {
-      this.activeExecutions.delete(executionId)
-      
-      logger.error('Hook execution failed', {
-        hookName,
-        executionId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
-
-      this.emit('hooks:execution_failed', { hookName, executionId, error })
       return []
     }
+
+    // Create execution context
+    const execContext: HookExecutionContext = {
+      ...context,
+      executionId,
+      startTime,
+      depth: 0,
+      timeout: this.config.maxExecutionTime
+    }
+
+    // Track active execution
+    this.activeExecutions.set(executionId, execContext)
+
+    const results: PluginHookResult[] = []
+    let stopPropagation = false
+
+    logger.debug('Executing hooks', {
+      hookName,
+      hookCount: enabledHooks.length,
+      executionId
+    })
+
+    // Execute hooks in priority order
+    for (const hook of enabledHooks) {
+      if (stopPropagation) {
+        break
+      }
+
+      try {
+        // Check circuit breaker
+        if (this.isCircuitBreakerOpen(hook.id)) {
+          logger.warn('Circuit breaker open, skipping hook', {
+            hookId: hook.id,
+            hookName: hook.name,
+            pluginId: hook.pluginId
+          })
+          continue
+        }
+
+        const executionResult = await this.executeHook(hook, execContext)
+        
+        // 🔧 FIX: Access the nested result property correctly
+        if (executionResult.success && executionResult.result) {
+          const hookResult = executionResult.result
+          results.push(hookResult)
+          
+          // Check for stop propagation
+          if (hookResult.stopPropagation) {
+            stopPropagation = true
+          }
+        }
+
+        // Update metrics
+        if (this.config.enableMetrics) {
+          this.updateMetrics(hook.name, executionResult)
+        }
+
+      } catch (error) {
+        logger.error('Hook execution failed', {
+          hookId: hook.id,
+          hookName: hook.name,
+          pluginId: hook.pluginId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        })
+
+        // Update circuit breaker
+        this.updateCircuitBreaker(hook.id, false)
+      }
+    }
+
+    // Remove from active executions
+    this.activeExecutions.delete(executionId)
+
+    const totalTime = Date.now() - startTime
+
+    logger.debug('Hook execution completed', {
+      hookName,
+      executionId,
+      resultsCount: results.length,
+      totalTime,
+      stopPropagation
+    })
+
+    this.emit('hooks:executed', {
+      hookName,
+      executionId,
+      results,
+      totalTime
+    })
+
+    return results
+  } catch (error) {
+    this.activeExecutions.delete(executionId)
+    
+    logger.error('Hook execution failed', {
+      hookName,
+      executionId,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+
+    this.emit('hooks:execution_failed', { hookName, executionId, error })
+    return []
   }
+}
 
   /**
    * Execute a single hook

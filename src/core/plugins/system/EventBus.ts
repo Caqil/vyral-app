@@ -133,7 +133,7 @@ export enum EventPriority {
 
 export class PluginEventBus extends EventEmitter {
   private static instance: PluginEventBus
-  private listeners: Map<string, EventListener[]> = new Map()
+  private eventListeners: Map<string, EventListener[]> = new Map()
   private subscriptions: Map<string, EventSubscription[]> = new Map()
   private eventHistory: PluginEvent[] = []
   private eventBuffer: Map<string, EventBuffer> = new Map()
@@ -174,10 +174,10 @@ export class PluginEventBus extends EventEmitter {
     return PluginEventBus.instance
   }
 
-  /**
-   * Emit an event
+ /**
+   * Emit an event asynchronously with plugin system features
    */
-  public async emit(
+  public async emitAsync(
     eventType: string,
     data?: any,
     context?: Partial<EventContext>,
@@ -267,7 +267,8 @@ export class PluginEventBus extends EventEmitter {
           
           this.metrics.failedEvents++
           
-          this.emit('system:error', {
+          // Use emitAsync for recursive calls to avoid conflicts
+          this.emitAsync('system:error', {
             type: 'listener_error',
             eventType,
             listenerId: listener.id,
@@ -280,7 +281,7 @@ export class PluginEventBus extends EventEmitter {
       // Process subscriptions
       await this.processSubscriptions(event)
 
-      // Emit to Node.js EventEmitter
+      // Emit to Node.js EventEmitter (synchronous)
       super.emit(eventType, event)
       super.emit('*', event) // Wildcard listener
 
@@ -308,6 +309,26 @@ export class PluginEventBus extends EventEmitter {
   }
 
   /**
+   * Synchronous emit that delegates to Node.js EventEmitter
+   * Use this for simple, synchronous event emissions
+   */
+  public override emit(eventName: string | symbol, ...args: any[]): boolean {
+    return super.emit(eventName, ...args)
+  }
+
+  /**
+   * Convenience method for plugin events - delegates to emitAsync
+   */
+  public async emitPluginEvent(
+    eventType: string,
+    data?: any,
+    context?: Partial<EventContext>,
+    pluginId?: string
+  ): Promise<boolean> {
+    return this.emitAsync(eventType, data, context, pluginId)
+  }
+
+  /**
    * Add event listener
    */
   public addEventListener(
@@ -331,9 +352,9 @@ export class PluginEventBus extends EventEmitter {
       triggerCount: 0
     }
 
-    const listeners = this.listeners.get(eventType) || []
+    const listeners = this.eventListeners.get(eventType) || []
     listeners.push(listener)
-    this.listeners.set(eventType, listeners)
+    this.eventListeners.set(eventType, listeners)
     
     this.metrics.listenersCount++
     this.metrics.activeListeners++
@@ -352,16 +373,16 @@ export class PluginEventBus extends EventEmitter {
    * Remove event listener
    */
   public removeEventListener(listenerId: string): boolean {
-    for (const [eventType, listeners] of this.listeners.entries()) {
+    for (const [eventType, listeners] of this.eventListeners.entries()) {
       const index = listeners.findIndex(l => l.id === listenerId)
       if (index > -1) {
         const listener = listeners[index]
         listeners.splice(index, 1)
         
         if (listeners.length === 0) {
-          this.listeners.delete(eventType)
+          this.eventListeners.delete(eventType)
         } else {
-          this.listeners.set(eventType, listeners)
+          this.eventListeners.set(eventType, listeners)
         }
         
         this.metrics.activeListeners--
@@ -385,7 +406,7 @@ export class PluginEventBus extends EventEmitter {
   public removePluginListeners(pluginId: string): number {
     let removed = 0
     
-    for (const [eventType, listeners] of this.listeners.entries()) {
+    for (const [eventType, listeners] of this.eventListeners.entries()) {
       const originalLength = listeners.length
       const filteredListeners = listeners.filter(l => l.pluginId !== pluginId)
       
@@ -393,9 +414,9 @@ export class PluginEventBus extends EventEmitter {
         removed += originalLength - filteredListeners.length
         
         if (filteredListeners.length === 0) {
-          this.listeners.delete(eventType)
+          this.eventListeners.delete(eventType)
         } else {
-          this.listeners.set(eventType, filteredListeners)
+          this.eventListeners.set(eventType, filteredListeners)
         }
       }
     }
@@ -523,11 +544,11 @@ export class PluginEventBus extends EventEmitter {
    */
   public getListeners(eventType?: string): EventListener[] {
     if (eventType) {
-      return this.listeners.get(eventType) || []
+      return this.eventListeners.get(eventType) || []
     }
     
     const allListeners: EventListener[] = []
-    this.listeners.forEach(listeners => allListeners.push(...listeners))
+    this.eventListeners.forEach(listeners => allListeners.push(...listeners))
     return allListeners
   }
 
@@ -652,8 +673,8 @@ export class PluginEventBus extends EventEmitter {
   }
 
   private getEventListeners(eventType: string): EventListener[] {
-    const directListeners = this.listeners.get(eventType) || []
-    const wildcardListeners = this.listeners.get('*') || []
+    const directListeners = this.eventListeners.get(eventType) || []
+    const wildcardListeners = this.eventListeners.get('*') || []
     
     return [...directListeners, ...wildcardListeners]
   }
@@ -815,7 +836,7 @@ export class PluginEventBus extends EventEmitter {
    * Shutdown event bus
    */
   public shutdown(): void {
-    this.listeners.clear()
+    this.eventListeners.clear()
     this.subscriptions.clear()
     this.eventHistory = []
     this.eventBuffer.clear()

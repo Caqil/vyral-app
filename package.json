@@ -50,6 +50,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tailwindcss/postcss": "^4.1.10",
     "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/tar": "^6.1.13",
     "archiver": "^6.0.1",
     "aws-sdk": "^2.1501.0",
     "bcryptjs": "^2.4.3",
