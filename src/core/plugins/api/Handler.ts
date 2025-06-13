@@ -6,11 +6,11 @@ import {
   PluginAPIResponse,
   PluginRoute,
   HTTPMethod 
-} from '@/core/plugins/types/api'
+} from '@/core/types/plugin'
 import { PluginError } from '@/core/types'
 import { logger } from '@/core/lib/utils/logger'
 import { PluginManager } from '@/core/plugins/manager/PluginManager'
-
+import { PluginConfig } from '@/core/types/plugin'
 /**
  * Plugin Handler - Handles plugin API request execution
  */
@@ -120,49 +120,49 @@ export class PluginHandler {
   /**
    * Create API context for plugin execution
    */
-  private async createAPIContext(
-    plugin: Plugin,
-    route: PluginRoute,
-    req: NextRequest
-  ): Promise<PluginAPIContext> {
-    const url = new URL(req.url)
-    
-    // Parse request data
-    const apiRequest: PluginAPIRequest = {
-      method: req.method as HTTPMethod,
-      path: url.pathname,
-      headers: Object.fromEntries(req.headers.entries()),
-      query: Object.fromEntries(url.searchParams.entries()),
-      params: this.extractRouteParams(route.path, url.pathname),
-      body: await this.parseRequestBody(req),
-      timestamp: new Date()
-    }
-
-    // Get plugin configuration
-    const config = await this.pluginManager.getPluginConfig(plugin.id) || {}
-
-    // Create context
-    const context: PluginAPIContext = {
-      request: apiRequest,
-      response: {
-        status: 200,
-        headers: {},
-        timestamp: new Date()
-      },
-      plugin: {
-        id: plugin.id,
-        config: config.settings || {}
-      },
-      logger: {
-        debug: (message: string, meta?: any) => logger.debug(message, { pluginId: plugin.id, ...meta }),
-        info: (message: string, meta?: any) => logger.info(message, { pluginId: plugin.id, ...meta }),
-        warn: (message: string, meta?: any) => logger.warn(message, { pluginId: plugin.id, ...meta }),
-        error: (message: string, meta?: any) => logger.error(message, { pluginId: plugin.id, ...meta })
-      }
-    }
-
-    return context
+ private async createAPIContext(
+  plugin: Plugin,
+  route: PluginRoute,
+  req: NextRequest
+): Promise<PluginAPIContext> {
+  const url = new URL(req.url)
+  
+  // Parse request data
+  const apiRequest: PluginAPIRequest = {
+    method: req.method as HTTPMethod,
+    path: url.pathname,
+    headers: Object.fromEntries(req.headers.entries()),
+    query: Object.fromEntries(url.searchParams.entries()),
+    params: this.extractRouteParams(route.path, url.pathname),
+    body: await this.parseRequestBody(req),
+    timestamp: new Date()
   }
+
+  // Get plugin configuration with proper typing
+  const config: PluginConfig | null = await this.pluginManager.getPluginConfig(plugin.id)
+
+  // Create context
+  const context: PluginAPIContext = {
+    request: apiRequest,
+    response: {
+      status: 200,
+      headers: {},
+      timestamp: new Date()
+    },
+    plugin: {
+      id: plugin.id,
+      config: config?.settings || {}
+    },
+    logger: {
+      debug: (message: string, meta?: any) => logger.debug(message, { pluginId: plugin.id, ...meta }),
+      info: (message: string, meta?: any) => logger.info(message, { pluginId: plugin.id, ...meta }),
+      warn: (message: string, meta?: any) => logger.warn(message, { pluginId: plugin.id, ...meta }),
+      error: (message: string, meta?: any) => logger.error(message, { pluginId: plugin.id, ...meta })
+    }
+  }
+
+  return context
+}
 
   /**
    * Extract route parameters from URL path

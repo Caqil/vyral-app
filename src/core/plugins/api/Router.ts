@@ -4,8 +4,7 @@ import {
   PluginRoute, 
   HTTPMethod,
   PluginAPIContext 
-} from '@/core/plugins/types/api'
-import { PluginError } from '@/core/types'
+} from '@/core/types/plugin'
 import { logger } from '@/core/lib/utils/logger'
 import { PluginManager } from '@/core/plugins/manager/PluginManager'
 import { PluginHandler } from './Handler'

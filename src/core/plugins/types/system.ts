@@ -1,6 +1,7 @@
+import { PluginCategory, PluginStatus } from '@/core/types'
 import { UserRole } from '@/core/types/auth'
 import { LogLevel, HealthStatus } from '@/core/types/system'
-import { Plugin, PluginStatus, PluginCategory, PluginEvent } from './plugin'
+import { PluginEvent } from '../manager/PluginManager'
 
 // Plugin System Configuration
 export interface PluginSystemConfig {

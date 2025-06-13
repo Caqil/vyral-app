@@ -3,7 +3,7 @@ import { Plugin } from '@/core/types/plugin'
 import { 
   PluginAPIContext,
   HTTPMethod 
-} from '@/core/plugins/types/api'
+} from '@/core/types/plugin'
 import { PluginError } from '@/core/types'
 import { logger } from '@/core/lib/utils/logger'
 import { PluginManager } from '@/core/plugins/manager/PluginManager'

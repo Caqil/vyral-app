@@ -303,7 +303,7 @@ export class PluginInstaller {
     extractDir: string
   ): Promise<string> {
     switch (request.source) {
-      case PluginSource.FILE:
+      case PluginSource.LOCAL:
         if (!request.file) {
           throw new PluginError('No file provided for file source', 'installer')
         }

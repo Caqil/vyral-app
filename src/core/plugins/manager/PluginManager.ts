@@ -8,7 +8,8 @@ import {
   PluginInstallRequest,
   PluginInstallResponse,
   PluginUpdateRequest,
-  PluginCategory
+  PluginCategory,
+  PluginManagerEvent
 } from '@/core/types/plugin'
 import { PluginError, ValidationError, NotFoundError } from '@/core/types'
 import { logger } from '@/core/lib/utils/logger'
@@ -198,7 +199,7 @@ export class PluginManager extends EventEmitter {
           await this.activatePlugin(result.plugin.id, userId)
         }
 
-        this.emit(PluginEvent.INSTALLED, { plugin: result.plugin, userId })
+        this.emit(PluginManagerEvent.INSTALLED, { plugin: result.plugin, userId })
         this.updateStats()
       }
 

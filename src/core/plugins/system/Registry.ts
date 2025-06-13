@@ -1,8 +1,9 @@
-import { Plugin, PluginStatus, PluginCategory, PluginEvent, PluginEventType } from '@/core/plugins/types/plugin'
+import { Plugin, PluginStatus, PluginCategory, PluginEventType } from '@/core/types/plugin';
 import { logger } from '@/core/lib/utils/logger'
 import { EventEmitter } from 'events'
 import * as fs from 'fs/promises'
 import * as path from 'path'
+import { PluginEvent } from './EventBus'
 
 export interface PluginRegistryEntry {
   plugin: Plugin
@@ -786,7 +787,7 @@ export class PluginRegistry extends EventEmitter {
 
   private createInitialState(): PluginState {
     return {
-      status: PluginStatus.INSTALLED,
+      status: PluginStatus.ACTIVE,
       isLoaded: false,
       isActive: false,
       hasErrors: false,

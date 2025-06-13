@@ -5,8 +5,6 @@ import archiver from 'archiver'
 import { 
   Plugin, 
   PluginStatus,
-  PluginConfig,
-  PluginData,
   PluginBackup 
 } from '@/core/types/plugin'
 import { PluginError, NotFoundError } from '@/core/types'

@@ -1,103 +1,23 @@
 import fs from 'fs/promises'
 import path from 'path'
+import { PluginError } from '@/core/types'
+import { logger } from '@/core/lib/utils/logger'
+import { PluginValidator } from './PluginValidator'
 import { 
   Plugin, 
   PluginManifest, 
   PluginStatus,
-  PluginConfig 
+  PluginConfig,
+  PluginLoadResult,        // ← Add these
+  PluginContext,           // ← Add these
+  PluginAPI,               // ← Add these
+  PluginLogger,            // ← Add these
+  PluginStorage,           // ← Add these
+  PluginHookSystem,        // ← Add these
+  LoadConfiguration,       // ← Add these
+  LoadedPluginModule       // ← Add these
 } from '@/core/types/plugin'
-import { PluginError } from '@/core/types'
-import { logger } from '@/core/lib/utils/logger'
-import { PluginValidator } from './PluginValidator'
 
-/**
- * Plugin load result interface
- */
-export interface PluginLoadResult {
-  success: boolean
-  plugin?: Plugin
-  error?: string
-  warnings?: string[]
-  loadTime: number
-}
-
-/**
- * Plugin context for execution
- */
-export interface PluginContext {
-  plugin: Plugin
-  config: PluginConfig
-  api: PluginAPI
-  logger: PluginLogger
-  storage: PluginStorage
-  hooks: PluginHookSystem
-}
-
-/**
- * Plugin API interface
- */
-export interface PluginAPI {
-  request: (method: string, path: string, data?: any) => Promise<any>
-  emit: (event: string, data?: any) => void
-  subscribe: (event: string, handler: Function) => void
-  unsubscribe: (event: string, handler: Function) => void
-}
-
-/**
- * Plugin logger interface
- */
-export interface PluginLogger {
-  debug: (message: string, meta?: any) => void
-  info: (message: string, meta?: any) => void
-  warn: (message: string, meta?: any) => void
-  error: (message: string, meta?: any) => void
-}
-
-/**
- * Plugin storage interface
- */
-export interface PluginStorage {
-  get: (key: string) => Promise<any>
-  set: (key: string, value: any) => Promise<void>
-  delete: (key: string) => Promise<boolean>
-  clear: () => Promise<void>
-  keys: () => Promise<string[]>
-}
-
-/**
- * Plugin hook system interface
- */
-export interface PluginHookSystem {
-  register: (hookName: string, handler: Function) => void
-  unregister: (hookName: string, handler: Function) => void
-  execute: (hookName: string, context: any) => Promise<any>
-}
-
-/**
- * Load configuration interface
- */
-export interface LoadConfiguration {
-  enableSandbox: boolean
-  enableValidation: boolean
-  enableHotReload: boolean
-  loadTimeout: number
-  maxMemoryUsage: number
-  allowedModules: string[]
-  blockedModules: string[]
-}
-
-/**
- * Loaded plugin module interface
- */
-export interface LoadedPluginModule {
-  plugin: Plugin
-  module: any
-  context: PluginContext
-  loadTime: Date
-  lastAccess: Date
-  memoryUsage: number
-  errorCount: number
-}
 
 /**
  * Plugin Loader - Handles loading and execution of plugins
