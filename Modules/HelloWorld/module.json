@@ -1,0 +1,19 @@
+{
+    "name": "HelloWorld",
+    "alias": "helloworld",
+    "description": "A simple Hello World module for testing module management system",
+    "version": "1.0.0",
+    "author": "Test Developer",
+    "author_email": "test@example.com",
+    "keywords": [
+        "hello",
+        "world",
+        "test",
+        "demo"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\HelloWorld\\Providers\\HelloWorldServiceProvider"
+    ],
+    "files": []
+}

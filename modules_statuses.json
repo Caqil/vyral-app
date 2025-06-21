@@ -1,0 +1,6 @@
+{
+    "Admin": true,
+    "UserManagement": true,
+    "Frontend": true,
+    "HelloWorld": true
+}
