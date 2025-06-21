@@ -1,0 +1,1 @@
+@tailwind base;@tailwind components;@tailwind utilities;@layer components{.admin-sidebar{@apply bg-gray-800 text-white;}.admin-content{@apply bg-white dark:bg-gray-900;}}

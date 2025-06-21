@@ -114,6 +114,57 @@
                         </svg>
                         Settings
                     </a>
+                    <!-- Activity Logs -->
+                    <a href="{{ route('admin.activity-logs.index') }}"
+                        class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group {{ request()->routeIs('admin.activity-logs.*') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                        Activity Logs
+                    </a>
+                    <a href="{{ route('admin.system-logs.index') }}"
+                        class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group {{ request()->routeIs('admin.system-logs.*') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        System Logs
+                    </a>
+
+                    <!-- File Manager -->
+                    <a href="{{ route('admin.file-manager.index') }}"
+                        class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group {{ request()->routeIs('admin.file-manager.*') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                        </svg>
+                        File Manager
+                    </a>
+
+                    <!-- Email Templates -->
+                    <a href="{{ route('admin.email-templates.index') }}"
+                        class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group {{ request()->routeIs('admin.email-templates.*') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Email Templates
+                    </a>
+
+                    <!-- Backups -->
+                    <a href="{{ route('admin.backups.index') }}"
+                        class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors group {{ request()->routeIs('admin.backups.*') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                            </path>
+                        </svg>
+                        Backups
+                    </a>
                 </div>
 
                 <!-- Divider -->
@@ -238,7 +289,8 @@
                                 <div class="py-1">
                                     <div class="px-4 py-2 border-b border-border">
                                         <p class="text-sm font-medium text-popover-foreground">
-                                            {{ auth()->user()->name }}</p>
+                                            {{ auth()->user()->name }}
+                                        </p>
                                         <p class="text-xs text-muted-foreground">{{ auth()->user()->email }}</p>
                                     </div>
                                     <a href="{{ route('admin.profile') }}"
